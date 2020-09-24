@@ -1,0 +1,21 @@
+{
+    "name": "musickr/musickr",
+    "description": "微信相关",
+    "type": "library",
+    "require": {
+        "php": "^7.4"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "musickr",
+            "email": "13458043813@163.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload":{
+	    "psr-4":{
+		    "musickr\\":"src"
+	    }
+    }
+}
