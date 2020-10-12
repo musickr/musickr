@@ -2,6 +2,7 @@
 
 namespace musickr\musickr;
 
+use think\facade\Cache;
 use think\exception\HttpException;
 
 class Wechat
@@ -19,7 +20,7 @@ class Wechat
      * @param $code
      * @return mixed
      */
-    public function getUser($code)
+    public function code_Open_id_Sessionk_key($code)
     {
         $param = [
             'appid' => $this->config['app_id'],
@@ -36,10 +37,11 @@ class Wechat
         return $res;
     }
 
-    public function userInfo($sessionKey,$encryptedData, $iv)
+   /* public function userInfo($token, $encryptedData, $iv)
     {
+        $sessionKey = $this->authcode($token, 'DECODE');
         return $this->decryptData($this->config['app_id'], $sessionKey, $encryptedData, $iv);
-    }
+    }*/
 
 
     private function getAccessToken()
@@ -73,28 +75,26 @@ class Wechat
      * @param string $iv 在小程序中获取的iv
      * @return array 解密后的数组
      */
-    function decryptData($appid, $sessionKey, $encryptedData, $iv)
+    public function decryptData($appid, $sessionKey, $encryptedData, $iv)
     {
         if (strlen($sessionKey) != 24) {
-            throw new HttpException('403','请检查您的登录状态');
-
+            throw new HttpException('403', '请检查您的登录状态');
         }
         $aesKey = base64_decode($sessionKey);
         if (strlen($iv) != 24) {
-            throw new HttpException('403','编码字段iv不合法');
+            throw new HttpException('403', '编码字段iv不合法');
         }
         $aesIV = base64_decode($iv);
         $aesCipher = base64_decode($encryptedData);
         $result = openssl_decrypt($aesCipher, "AES-128-CBC", $aesKey, 1, $aesIV);
         $dataObj = json_decode($result);
         if ($dataObj == NULL) {
-            throw new HttpException('404','找不到您的用户信息');
+            throw new HttpException('404', '找不到您的用户信息');
         }
         if ($dataObj->watermark->appid != $appid) {
-            throw new HttpException('500','请检查微信配置');
+            throw new HttpException('500', '请检查微信配置');
         }
-        $data = json_decode($result, true);
-        return $result;
+        return $dataObj;
     }
 
     /**
@@ -108,17 +108,17 @@ class Wechat
 
 
     //获取手机号
-    public function number($appid , $sessionKey, $encryptedData, $iv)
+    public function number($appid, $sessionKey, $encryptedData, $iv)
     {
-        include_once (ROOT_PATH."./public/author/wxBizDataCrypt.php"); //引入 wxBizDataCrypt.php 文件
+        include_once(ROOT_PATH . "./public/author/wxBizDataCrypt.php"); //引入 wxBizDataCrypt.php 文件
         $appid = $appid;
         $sessionKey = $sessionKey;
-        $encryptedData= $encryptedData;
+        $encryptedData = $encryptedData;
         $iv = $iv;
         $data = '';
 
         $pc = new \WXBizDataCrypt($appid, $sessionKey); //注意使用\进行转义
-        $errCode = $pc->decryptData($encryptedData, $iv, $data );
+        $errCode = $pc->decryptData($encryptedData, $iv, $data);
         if ($errCode == 0) {
             print($data . "\n");
         } else {
@@ -333,5 +333,7 @@ class Wechat
         ]);
         die($xml_post);
     }
+
+    
 }
 
